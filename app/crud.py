@@ -58,10 +58,48 @@ def add_stage_prediction(db: Session, prediction: schemas.StagePredictionCreate)
     db.refresh(db_pred)
     return db_pred
 
-def log_prediction(db: Session, **kwargs):
-    entry = models.MLPrediction(**kwargs)
-    db.add(entry)
+def log_prediction(db: Session, temperature, pressure, humidity, NaCl, KCl,
+                   defect_probability, risk_level, recommendation,
+                   source_model: str, rule_used: str = None):
+    from . import models
+    prediction = models.Prediction(
+        temperature=temperature,
+        pressure=pressure,
+        humidity=humidity,
+        NaCl=NaCl,
+        KCl=KCl,
+        defect_probability=defect_probability,
+        risk_level=risk_level,
+        recommendation=recommendation,
+        source_model=source_model,
+        rule_used=rule_used
+    )
+    db.add(prediction)
     db.commit()
-    db.refresh(entry)
-    return entry
+    db.refresh(prediction)
+    return prediction
 
+
+# def log_prediction(db: Session, **kwargs):
+#     entry = models.MLPrediction(**kwargs)
+#     db.add(entry)
+#     db.commit()
+#     db.refresh(entry)
+#     return entry
+#
+# def log_sanfis_prediction(db: Session, input_data: dict, prediction: dict, rule: str):
+#     db_log = models.SANFISPrediction(
+#         temperature=input_data["temperature"],
+#         pressure=input_data["pressure"],
+#         humidity=input_data["humidity"],
+#         NaCl=input_data["NaCl"],
+#         KCl=input_data["KCl"],
+#         defect_probability=prediction["defect_probability"],
+#         risk_level=prediction["risk_level"],
+#         recommendation=prediction["recommendation"],
+#         rule_used=rule
+#     )
+#     db.add(db_log)
+#     db.commit()
+#     db.refresh(db_log)
+#     return db_log

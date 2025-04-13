@@ -53,16 +53,53 @@ class StagePrediction(Base):
 
     stage = relationship("Stage", back_populates="predictions")
 
-class MLPrediction(Base):
-    __tablename__ = "ml_predictions"
+class Prediction(Base):
+    __tablename__ = "predictions"
 
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(TIMESTAMP, default=datetime.utcnow)
+    timestamp = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
+
     temperature = Column(Float)
     pressure = Column(Float)
     humidity = Column(Float)
     NaCl = Column(Float)
     KCl = Column(Float)
+
     defect_probability = Column(Float)
     risk_level = Column(String)
-    recommendation = Column(Text)
+    recommendation = Column(String)
+
+    source_model = Column(String)  # 'ml' или 'sanfis'
+    rule_used = Column(String, nullable=True)  # только для sanfis, можно None
+
+
+# class MLPrediction(Base):
+#     __tablename__ = "ml_predictions"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     timestamp = Column(TIMESTAMP, default=datetime.utcnow)
+#     temperature = Column(Float)
+#     pressure = Column(Float)
+#     humidity = Column(Float)
+#     NaCl = Column(Float)
+#     KCl = Column(Float)
+#     defect_probability = Column(Float)
+#     risk_level = Column(String)
+#     recommendation = Column(Text)
+#
+# class SANFISPrediction(Base):
+#     __tablename__ = "sanfis_predictions"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     timestamp = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
+#
+#     temperature = Column(Float)
+#     pressure = Column(Float)
+#     humidity = Column(Float)
+#     NaCl = Column(Float)
+#     KCl = Column(Float)
+#
+#     defect_probability = Column(Float)
+#     risk_level = Column(String)
+#     recommendation = Column(String)
+#     rule_used = Column(String)
