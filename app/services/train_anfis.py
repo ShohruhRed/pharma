@@ -5,10 +5,10 @@ from sklearn.metrics import classification_report
 import pickle
 
 # === 1. Загрузка подготовленных данных ===
-X_train = pd.read_csv("anfis_X_train.csv").values
-y_train = pd.read_csv("anfis_y_train.csv").values.ravel()
-X_test = pd.read_csv("anfis_X_test.csv").values
-y_test = pd.read_csv("anfis_y_test.csv").values.ravel()
+X_train = pd.read_csv("../train/anfis_X_train.csv").values
+y_train = pd.read_csv("../train/anfis_y_train.csv").values.ravel()
+X_test = pd.read_csv("../train/anfis_X_test.csv").values
+y_test = pd.read_csv("../train/anfis_y_test.csv").values.ravel()
 
 # === 2. Преобразование в тензоры ===
 X_train = torch.tensor(X_train, dtype=torch.float32)
@@ -57,8 +57,8 @@ print("\n📊 Classification Report (SANFIS):")
 print(classification_report(y_true, y_pred_classes))
 
 # === 7. Сохранение модели и конфигурации ===
-torch.save(model.state_dict(), "../sanfis_model.pt")
-with open("../sanfis_membfuncs.pkl", "wb") as f:
+torch.save(model.state_dict(), "../models/sanfis_model.pt")
+with open("../models/sanfis_membfuncs.pkl", "wb") as f:
     pickle.dump(membfuncs, f)
 
 print("✅ SANFIS модель и параметры сохранены")

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Float, String, Text, ForeignKey, TIMESTAMP, JSON
 from sqlalchemy.orm import relationship
-from .database import Base
+from app.db.database import Base
 from datetime import datetime
 
 class Batch(Base):

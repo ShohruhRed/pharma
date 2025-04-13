@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 # Загрузка сохранённых membfuncs
-with open("../sanfis_membfuncs.pkl", "rb") as f:
+with open("../models/sanfis_membfuncs.pkl", "rb") as f:
     membfuncs = pickle.load(f)
 
 # Названия признаков

@@ -5,7 +5,7 @@ from sklearn.metrics import classification_report, accuracy_score
 import joblib
 
 # === 1. Загрузка нового реалистичного датасета ===
-df = pd.read_csv("../ml_dataset_balanced.csv")
+df = pd.read_csv("../data/ml_dataset_balanced.csv")
 
 # === 2. Подготовка признаков и целевой переменной ===
 X = df[["temperature", "pressure", "humidity", "NaCl", "KCl"]]
@@ -31,5 +31,5 @@ print(classification_report(y_test, y_pred))
 print("✅ Accuracy:", accuracy_score(y_test, y_pred))
 
 # === 6. Сохранение обученной модели ===
-joblib.dump(clf, "../defect_predictor_final.pkl")
+joblib.dump(clf, "../models/defect_predictor_final.pkl")
 print("✅ Модель сохранена как defect_predictor_final.pkl")

@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
 # === 1. Загрузка CSV-файла ===
-df = pd.read_csv("../ml_dataset_balanced.csv")  # Замените на путь к вашему датасету
+df = pd.read_csv("../data/ml_dataset_balanced.csv")  # Замените на путь к вашему датасету
 
 # === 2. Выбор признаков и целевого признака ===
 X = df[["temperature", "pressure", "humidity", "NaCl", "KCl"]].values

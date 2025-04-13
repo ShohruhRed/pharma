@@ -4,8 +4,8 @@ import itertools
 import pandas as pd
 from sanfis import SANFIS
 
-model_path = "../sanfis_model.pt"
-membfuncs_path = "../sanfis_membfuncs.pkl"
+model_path = "../models/sanfis_model.pt"
+membfuncs_path = "../models/sanfis_membfuncs.pkl"
 feature_names = ["temperature", "pressure", "humidity", "NaCl", "KCl"]
 
 with open(membfuncs_path, "rb") as f:

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from app.db import models, schemas
 from datetime import datetime
 
 
@@ -61,7 +61,7 @@ def add_stage_prediction(db: Session, prediction: schemas.StagePredictionCreate)
 def log_prediction(db: Session, temperature, pressure, humidity, NaCl, KCl,
                    defect_probability, risk_level, recommendation,
                    source_model: str, rule_used: str = None):
-    from . import models
+
     prediction = models.Prediction(
         temperature=temperature,
         pressure=pressure,
