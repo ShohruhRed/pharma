@@ -1,12 +1,28 @@
 <template>
-  <div>
-    <h2>🕒 Stage Timeline</h2>
-    <p>Здесь будет временная шкала этапов</p>
+  <div class="stage-timeline">
+    <h3>⏱ Этапы</h3>
+    <ul>
+      <li v-for="s in stages" :key="s.id" @click="$emit('select', s.id)">
+        {{ s.name }}
+      </li>
+    </ul>
   </div>
 </template>
-
 <script>
 export default {
-  name: "StageTimeline",
-};
+  props: { stages: Array }
+}
 </script>
+<style lang="scss" scoped>
+
+.stage-timeline {
+  @include card;
+  padding: $spacing-md;
+  ul { list-style: none; }
+  li {
+    padding: $spacing-sm;
+    cursor: pointer;
+    &:hover { background: $color-bg; }
+  }
+}
+</style>

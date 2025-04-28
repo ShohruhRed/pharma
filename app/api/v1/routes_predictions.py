@@ -1,74 +1,36 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-import numpy as np
-import torch
+from typing import List, Optional
+from app.db import models
+from app.core.config import get_db
 
-from app.core.ml_models import ml_model, sanfis_model, rules_dict
-from app.core.config import get_db, classify_risk
-from app.db import schemas
-from app.crud import crud
+router = APIRouter(
+    prefix="/predictions",
+    tags=["Predictions"]
+)
 
-router = APIRouter()
+# ✅ Получить все предсказания
+@router.get("/")
+def get_all_predictions(
+    db: Session = Depends(get_db),
+    source_model: Optional[str] = Query(None),
+    risk_level: Optional[str] = Query(None)
+):
+    query = db.query(models.Prediction)
 
-@router.post("/ml-predict")
-def predict_defect(data: schemas.PredictionInput, db: Session = Depends(get_db)):
-    features = np.array([[data.temperature, data.pressure, data.humidity, data.NaCl, data.KCl]])
-    probability = ml_model.predict_proba(features)[0][1]
-    risk_level, recommendation = classify_risk(probability)
+    if source_model:
+        query = query.filter(models.Prediction.source_model == source_model)
 
-    crud.log_prediction(
-        db,
-        temperature=data.temperature,
-        pressure=data.pressure,
-        humidity=data.humidity,
-        NaCl=data.NaCl,
-        KCl=data.KCl,
-        defect_probability=round(float(probability), 2),
-        risk_level=risk_level,
-        recommendation=recommendation,
-        source_model="ml"
-    )
+    if risk_level:
+        query = query.filter(models.Prediction.risk_level == risk_level)
 
-    return {
-        "risk_level": risk_level,
-        "defect_probability": round(float(probability), 2),
-        "recommendation": recommendation,
-    }
+    return query.order_by(models.Prediction.timestamp.desc()).all()
 
-@router.post("/sanfis-predict")
-def sanfis_predict(data: schemas.PredictionInput, db: Session = Depends(get_db)):
-    x = np.array([[data.temperature, data.pressure, data.humidity, data.NaCl, data.KCl]])
-    x_tensor = torch.tensor(x, dtype=torch.float32)
 
-    with torch.no_grad():
-        output = sanfis_model(X_batch=x_tensor, S_batch=x_tensor)
-        prob = output.item()
-
-    # Определение ближайшего правила
-    closest_rule = min(
-        rules_dict.items(),
-        key=lambda item: np.linalg.norm(np.array(item[0]) - x.flatten())
-    )[1]
-
-    risk_level, recommendation = classify_risk(prob)
-
-    crud.log_prediction(
-        db,
-        temperature=data.temperature,
-        pressure=data.pressure,
-        humidity=data.humidity,
-        NaCl=data.NaCl,
-        KCl=data.KCl,
-        defect_probability=round(float(prob), 2),
-        risk_level=risk_level,
-        recommendation=recommendation,
-        source_model="sanfis",
-        rule_used=closest_rule
-    )
-
-    return {
-        "defect_probability": round(prob, 2),
-        "risk_level": risk_level,
-        "recommendation": recommendation,
-        "rule_used": closest_rule
-    }
+# ✅ Получить одно предсказание по ID
+@router.get("/{prediction_id}")
+def get_prediction_by_id(prediction_id: int, db: Session = Depends(get_db)):
+    prediction = db.query(models.Prediction).filter(models.Prediction.id == prediction_id).first()
+    if not prediction:
+        return {"error": "Prediction not found"}
+    return prediction

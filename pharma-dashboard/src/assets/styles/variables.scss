@@ -1,0 +1,31 @@
+// src/assets/styles/_variables.scss
+
+// Основные цвета
+$color-primary: #007bff;
+$color-surface: #ffffff;
+$color-on-surface-variant: #555555;
+
+// Оттенки для рисков
+$color-low: #e8f5e9;
+$color-medium: #fff8e1;
+$color-high: #ffebee;
+
+// Расстояния и радиусы
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+
+// Тени
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+$color-bg: #f5f5f5; 
+$color-border: #e0e0e0;
+$radius: 4px;
+$text-dark:       #111827;
+$text-muted:      #6b7280;

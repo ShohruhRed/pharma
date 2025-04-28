@@ -1,0 +1,17 @@
+@use 'variables' as *;   // подключились автоматом из includePaths
+@use 'mixins'   as *;
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: $color-bg;
+  color: $text-dark;
+  line-height: 1.5;
+}
