@@ -58,11 +58,12 @@ def add_stage_prediction(db: Session, prediction: schemas.StagePredictionCreate)
     db.refresh(db_pred)
     return db_pred
 
-def log_prediction(db: Session, temperature, pressure, humidity, NaCl, KCl,
+def log_prediction(db: Session,stage_id, temperature, pressure, humidity, NaCl, KCl,
                    defect_probability, risk_level, recommendation,
                    source_model: str, rule_used: str = None):
 
     prediction = models.Prediction(
+        stage_id = stage_id,
         temperature=temperature,
         pressure=pressure,
         humidity=humidity,
@@ -78,6 +79,32 @@ def log_prediction(db: Session, temperature, pressure, humidity, NaCl, KCl,
     db.commit()
     db.refresh(prediction)
     return prediction
+
+# app/crud/crud.py
+
+from sqlalchemy.orm import Session
+from app.db import models, schemas
+
+# crud.py
+def create_prediction(db: Session, pred_in: schemas.PredictionCreate):
+    db_pred = models.Prediction(
+        temperature=pred_in.temperature,
+        pressure=pred_in.pressure,
+        humidity=pred_in.humidity,
+        NaCl=pred_in.NaCl,
+        KCl=pred_in.KCl,
+        defect_probability=pred_in.defect_probability,
+        risk_level=pred_in.risk_level,
+        recommendation=pred_in.recommendation,
+        source_model=pred_in.source_model,
+        rule_used=pred_in.rule_used,
+        stage_id=pred_in.stage_id,      # вот он!
+    )
+    db.add(db_pred)
+    db.commit()
+    db.refresh(db_pred)
+    return db_pred
+
 
 
 # def log_prediction(db: Session, **kwargs):

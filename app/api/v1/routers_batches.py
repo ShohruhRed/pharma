@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Batches"]
 )
 
-@router.post("/batches")
+@router.post("/")
 def create_batch_endpoint(batch: schemas.BatchCreate = Depends(), db: Session = Depends(get_db)):
     return crud.create_batch(db, batch)
 

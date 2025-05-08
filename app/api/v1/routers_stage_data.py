@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Stage Sensor Data"]
 )
 
-@router.post("/stage-data")
+@router.post("/")
 def add_stage_sensor_data(data: schemas.StageSensorDataCreate, db: Session = Depends(get_db)):
     db_data = models.StageSensorData(
         stage_id=data.stage_id,

@@ -53,8 +53,39 @@ class StagePredictionCreate(BaseModel):
     recommendation: Optional[str]
 
 class PredictionInput(BaseModel):
+    stage_id: int
     temperature: float
     pressure: float
     humidity: float
     NaCl: float
     KCl: float
+
+
+# app/db/schemas.py
+
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
+
+class PredictionBase(BaseModel):
+    temperature: float
+    pressure: float
+    humidity: float
+    NaCl: float
+    KCl: float
+    defect_probability: float
+    risk_level: str
+    recommendation: str
+    source_model: str      # 'ml' или 'sanfis'
+    rule_used: Optional[str] = None
+
+class PredictionCreate(PredictionBase):
+    stage_id: Optional[int] = None
+
+class Prediction(PredictionBase):
+    id: int
+    timestamp: datetime
+    stage_id: Optional[int]
+
+    class Config:
+        orm_mode = True

@@ -25,7 +25,9 @@ def predict_defect(data: schemas.PredictionInput, db: Session = Depends(get_db))
         defect_probability=round(float(probability), 2),
         risk_level=risk_level,
         recommendation=recommendation,
-        source_model="ml"
+        source_model="ml",
+        stage_id=data.stage_id
+
     )
 
     return {

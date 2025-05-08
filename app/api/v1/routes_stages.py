@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Stages"]
 )
 
-@router.post("/stages", response_model=schemas.Stage)
+@router.post("/", response_model=schemas.Stage)
 def create_stage(stage: schemas.StageCreate, db: Session = Depends(get_db)):
     db_stage = models.Stage(
         batch_id=stage.batch_id,

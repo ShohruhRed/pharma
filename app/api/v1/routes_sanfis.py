@@ -37,7 +37,8 @@ def sanfis_predict(data: schemas.PredictionInput, db: Session = Depends(get_db))
         risk_level=risk_level,
         recommendation=recommendation,
         source_model="sanfis",
-        rule_used=closest_rule
+        rule_used=closest_rule,
+        stage_id = data.stage_id
     )
 
     return {

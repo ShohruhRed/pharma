@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Stage Predictions"]
 )
 
-@router.post("/stage-predictions")
+@router.post("/")
 def add_stage_prediction(pred: schemas.StagePredictionCreate, db: Session = Depends(get_db)):
     db_pred = models.StagePrediction(
         stage_id=pred.stage_id,
