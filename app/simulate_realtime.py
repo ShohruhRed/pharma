@@ -7,10 +7,10 @@ API_URL    = "http://localhost:8000/api/v1"
 STAGE_NAMES = ["Mixing", "Granulation", "Drying", "Pressing", "Coating", "Packaging"]
 
 RANGES = {
-    "temperature": (20.0, 40.0),
-    "pressure":    (1.0,  2.5),
+    "temperature": (20.0, 43.0),
+    "pressure":    (1.0,  2.7),
     "humidity":    (30.0, 70.0),
-    "NaCl":        (0.4,  0.6),
+    "NaCl":        (0.4,  0.7),
     "KCl":         (0.2,  0.3),
 }
 
