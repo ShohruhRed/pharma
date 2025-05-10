@@ -43,6 +43,7 @@ class StageSensorDataCreate(BaseModel):
     pressure: Optional[float]
     humidity: Optional[float]
     composition: Optional[Dict[str, float]]
+    stage_idx: int
 
 
 # === Прогноз по этапу ===
@@ -59,6 +60,8 @@ class PredictionInput(BaseModel):
     humidity: float
     NaCl: float
     KCl: float
+    stage_idx: int
+
 
 
 # app/db/schemas.py

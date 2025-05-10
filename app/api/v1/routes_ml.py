@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/ml-predict")
 def predict_defect(data: schemas.PredictionInput, db: Session = Depends(get_db)):
-    features = np.array([[data.temperature, data.pressure, data.humidity, data.NaCl, data.KCl]])
+    features = np.array([[data.temperature, data.pressure, data.humidity, data.NaCl, data.KCl, data.stage_idx]])
     probability = ml_model.predict_proba(features)[0][1]
     risk_level, recommendation = classify_risk(probability)
 

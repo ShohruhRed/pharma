@@ -6,7 +6,7 @@ from sanfis import SANFIS
 
 model_path = "../models/sanfis_model.pt"
 membfuncs_path = "../models/sanfis_membfuncs.pkl"
-feature_names = ["temperature", "pressure", "humidity", "NaCl", "KCl"]
+feature_names = ["temperature", "pressure", "humidity", "NaCl", "KCl", "stage_idx"]
 
 with open(membfuncs_path, "rb") as f:
     membfuncs = pickle.load(f)

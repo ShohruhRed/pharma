@@ -12,12 +12,12 @@ ml_model = joblib.load("app/models/defect_predictor_final.pkl")
 with open("app/models/sanfis_membfuncs.pkl", "rb") as f:
     membfuncs = pickle.load(f)
 
-sanfis_model = SANFIS(membfuncs=membfuncs, n_input=5)
+sanfis_model = SANFIS(membfuncs=membfuncs, n_input=6)
 sanfis_model.load_state_dict(torch.load("app/models/sanfis_model.pt"))
 sanfis_model.eval()
 
 # === Правила для SANFIS ===
-feature_names = ["temperature", "pressure", "humidity", "NaCl", "KCl"]
+feature_names = ["temperature", "pressure", "humidity", "NaCl", "KCl", "stage_idx"]
 
 def generate_rules_dict(model):
     trained_mfs = {}

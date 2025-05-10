@@ -17,7 +17,8 @@ def add_stage_sensor_data(data: schemas.StageSensorDataCreate, db: Session = Dep
         temperature=data.temperature,
         pressure=data.pressure,
         humidity=data.humidity,
-        composition=data.composition
+        composition=data.composition,
+        stage_idx=data.stage_idx
     )
     db.add(db_data)
     db.commit()

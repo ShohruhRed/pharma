@@ -49,6 +49,7 @@ class StageSensorData(Base):
     composition = Column(JSON)
 
     stage = relationship("Stage", back_populates="sensor_data")
+    stage_idx = Column(Integer)  # 📌 Теперь `stage_idx` добавлен!
 
 
 class Prediction(Base):

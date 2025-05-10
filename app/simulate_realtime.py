@@ -3,8 +3,11 @@ import random
 import time
 from datetime import datetime
 
-API_URL    = "http://localhost:8000/api/v1"
+API_URL = "http://localhost:8000/api/v1"
 STAGE_NAMES = ["Mixing", "Granulation", "Drying", "Pressing", "Coating", "Packaging"]
+STAGE_MAP = {
+    "Mixing": 0, "Granulation": 1, "Drying": 2, "Pressing": 3, "Coating": 4, "Packaging": 5
+}
 
 RANGES = {
     "temperature": (20.0, 43.0),
@@ -27,58 +30,79 @@ def create_stage(batch_id: int, name: str):
     return r.json()["id"]
 
 
-def send_stage_data(stage_id: int):
-    """Отправляет одно измерение сенсоров, возвращает словарь sensor."""
+def send_stage_data(stage_id: int, stage_name: str):
+    """Отправляет измерение сенсоров, включая `stage_idx` и `composition`."""
     now = datetime.utcnow().isoformat()
+    stage_idx = int(STAGE_MAP.get(stage_name, -1))  # 📌 Если этап неизвестен, `stage_idx = -1`
+
     payload = {
-        "stage_id":    stage_id,
-        "timestamp":   now,
+        "stage_id": stage_id,
+        "timestamp": now,
         "temperature": round(random.uniform(*RANGES["temperature"]), 2),
-        "pressure":    round(random.uniform(*RANGES["pressure"]),    2),
-        "humidity":    round(random.uniform(*RANGES["humidity"]),    2),
-        "composition": {
+        "pressure": round(random.uniform(*RANGES["pressure"]), 2),
+        "humidity": round(random.uniform(*RANGES["humidity"]), 2),
+        "composition": {  # 📌 Теперь `NaCl` и `KCl` внутри `composition`
             "NaCl": round(random.uniform(*RANGES["NaCl"]), 2),
-            "KCl":  round(random.uniform(*RANGES["KCl"]),  2),
-        }
+            "KCl": round(random.uniform(*RANGES["KCl"]), 2),
+        },
+        "stage_idx": stage_idx  # 📌 `stage_idx` остаётся отдельным
     }
+
+    # 🔎 Проверяем, что `composition` присутствует
+    import json
+    print(f"🔎 Отправляем в API:\n{json.dumps(payload, indent=2)}")
+
     r = requests.post(f"{API_URL}/stage-data", json=payload)
     r.raise_for_status()
     return payload
 
 
 def get_sanfis_prediction(sensor: dict):
-    """Запрос к /sanfis-predict, подставляем правильные имена полей."""
+    """Запрос к SANFIS API, включая `NaCl` и `KCl` как отдельные поля."""
     inp = {
         "stage_id":    sensor["stage_id"],
         "temperature": sensor["temperature"],
         "pressure":    sensor["pressure"],
         "humidity":    sensor["humidity"],
-        "NaCl":        sensor["composition"]["NaCl"],
-        "KCl":         sensor["composition"]["KCl"],
+        "NaCl":        sensor["composition"]["NaCl"],  # 📌 Теперь передаём напрямую!
+        "KCl":         sensor["composition"]["KCl"],  # 📌 Теперь передаём напрямую!
+        "stage_idx":   sensor["stage_idx"]
     }
+
+    # 🔎 Проверяем, что `NaCl` и `KCl` правильно переданы
+    import json
+    print(f"🔎 Запрос в SANFIS API:\n{json.dumps(inp, indent=2)}")
+
     r = requests.post(f"{API_URL}/sanfis-predict", json=inp)
     if r.status_code == 422:
-        print("🛑 Sanfis 422 error:", r.json())
+        print(f"🛑 Sanfis 422 error: {r.json()}")
     r.raise_for_status()
     return r.json()
 
 
+
 def log_sanfis(stage_id: int, sensor: dict, sf: dict):
-    # """Записываем предсказание в общий /predictions."""
+    # """Логируем предсказание, включая `stage_idx`."""
     # entry = {
     #     "stage_id":           stage_id,
-    #     "timestamp":          datetime.utcnow().isoformat(),
+    #     "timestamp":          sensor["timestamp"],
     #     "temperature":        sensor["temperature"],
     #     "pressure":           sensor["pressure"],
     #     "humidity":           sensor["humidity"],
-    #     "NaCl":               sensor["composition"]["NaCl"],
-    #     "KCl":                sensor["composition"]["KCl"],
+    #     "NaCl":               sensor["NaCl"],
+    #     "KCl":                sensor["KCl"],
+    #     "stage_idx":          sensor["stage_idx"],  # 📌 Теперь `stage_idx` записывается!
     #     "defect_probability": sf["defect_probability"],
     #     "risk_level":         sf["risk_level"],
     #     "recommendation":     sf["recommendation"],
     #     "source_model":       "sanfis",
     #     "rule_used":          sf.get("rule_used"),
     # }
+    #
+    # # 🔎 Выводим перед отправкой для диагностики
+    # import json
+    # print(f"📝 Записываем лог предсказания:\n{json.dumps(entry, indent=2)}")
+    #
     # r = requests.post(f"{API_URL}/predictions", json=entry)
     # r.raise_for_status()
     pass
@@ -89,18 +113,16 @@ def run_simulation_sanfis(measurements_per_stage: int = 5):
     batch_id = create_batch()
     print(f"[+] Создана партия #{batch_id}")
 
-    # 1) Создаём все этапы один раз
     stage_ids = {}
     for name in STAGE_NAMES:
         sid = create_stage(batch_id, name)
         stage_ids[name] = sid
         print(f"  • Этап {name} (id={sid})")
 
-    # 2) По очереди делаем measurements_per_stage замеров на каждом этапе
     for name, sid in stage_ids.items():
         print(f"--- {name}: {measurements_per_stage} замеров ---")
         for i in range(1, measurements_per_stage + 1):
-            sensor = send_stage_data(sid)
+            sensor = send_stage_data(sid, name)  # 📌 Теперь `stage_idx` передаётся корректно
             sf     = get_sanfis_prediction(sensor)
             log_sanfis(sid, sensor, sf)
             print(f"  [{name}·{i}] prob={sf['defect_probability']:.2f}, "
