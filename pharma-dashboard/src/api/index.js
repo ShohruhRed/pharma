@@ -18,6 +18,10 @@ export function fetchSensorDataByStage(stageId) {
   return apiClient.get(`/stage-data/by-stage/${stageId}`).then(res => res.data);
 }
 
+export function fetchCurrentStageData() {
+  return apiClient.get('/stage-data/current').then(res => res.data)
+}
+
 export function fetchPredictionByStage(stageId) {
   return apiClient.get(`/predictions?stage_id=${stageId}`).then(res => res.data);
 }

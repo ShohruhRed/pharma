@@ -10,10 +10,26 @@
       </v-col>
     </v-row>
 
-    <!-- Сенсоры -->
+    <!-- Сенсорлар -->
     <v-row>
       <v-col cols="12" sm="4" v-for="(item, i) in sensorStats" :key="i">
-        <v-card :color="item.color" class="pa-4 text-white" elevation="2" rounded="xl">
+      <v-card
+          :color="item.color"
+          :class="['pa-4 text-white position-relative', highlighted ? 'pulse-card' : '']"
+          elevation="2"
+          rounded="xl"
+        >
+          <!-- Иконка риска -->
+          <v-icon
+            :color="riskColorClass"
+            size="20"
+            class="position-absolute top-0 right-0 mt-2 mr-2"
+            style="background: white; border-radius: 50%; padding: 2px;"
+          >
+            {{ riskIcon }}
+          </v-icon>
+
+          <!-- Основное содержимое -->
           <v-card-title class="d-flex justify-space-between align-center">
             {{ item.title }}
             <v-icon>{{ item.icon }}</v-icon>
@@ -23,7 +39,7 @@
       </v-col>
     </v-row>
 
-    <!-- Рекомендация -->
+    <!-- Rekomendatsiya -->
     <v-row>
       <v-col cols="12">
         <v-alert :type="riskColor" prominent border="start" class="mt-6">
@@ -40,10 +56,8 @@
 
 <script>
 import {
-  fetchBatches,
-  fetchStagesByBatch,
-  fetchSensorDataByStage,
-  fetchPredictionByStage,
+  fetchCurrentStageData,
+  fetchPredictionByStage
 } from '@/api'
 
 export default {
@@ -53,6 +67,8 @@ export default {
       batchName: '',
       stageName: '',
       sensor: {},
+      prevSensor: {},
+      highlighted: false,
       prediction: {},
       interval: null
     }
@@ -87,28 +103,53 @@ export default {
         case 'low': return 'success'
         default: return 'info'
       }
-    }
+    },
+    riskIcon() {
+      switch (this.prediction.risk_level) {
+        case 'high': return 'mdi-alert-circle'
+        case 'medium': return 'mdi-alert'
+        case 'low': return 'mdi-check-circle'
+        default: return 'mdi-help-circle'
+      }
+    },
+    riskColorClass() {
+      switch (this.prediction.risk_level) {
+        case 'high': return 'error'
+        case 'medium': return 'warning'
+        case 'low': return 'success'
+        default: return 'info'
+      }
+    }    
   },
   methods: {
     async loadData() {
       try {
-        const batches = await fetchBatches()
-        const latestBatch = batches.at(-1)
-        if (!latestBatch) return
+        const data = await fetchCurrentStageData()
 
-        this.batchName = latestBatch.name || `#${latestBatch.id}`
+        this.batchName = data.batch.name || `#${data.batch.id}`
+        this.stageName = data.stage.stage_label || `#${data.stage.id}`
 
-        const stages = await fetchStagesByBatch(latestBatch.id)
-        const latestStage = stages.at(-1)
-        if (!latestStage) return
+        const newSensor = data.sensor_data
 
-        this.stageName = latestStage.name || `#${latestStage.id}`
+        // Сравнение с предыдущими значениями
+        const changed = (
+          this.prevSensor.temperature !== newSensor.temperature ||
+          this.prevSensor.pressure !== newSensor.pressure ||
+          this.prevSensor.humidity !== newSensor.humidity
+        )
 
-        const sensors = await fetchSensorDataByStage(latestStage.id)
-        const prediction = await fetchPredictionByStage(latestStage.id)
+        this.sensor = newSensor
 
-        this.sensor = sensors.at(-1) || {}
+        if (changed) {
+          this.highlighted = true
+          setTimeout(() => { this.highlighted = false }, 1000)
+        }
+
+        this.prevSensor = { ...newSensor }
+
+        const prediction = await fetchPredictionByStage(data.stage.id)
         this.prediction = prediction?.[0] || {}
+
       } catch (err) {
         console.error('Operator sahifasida xatolik:', err)
       }
@@ -116,10 +157,32 @@ export default {
   },
   async mounted() {
     await this.loadData()
-    this.interval = setInterval(this.loadData, 5000) // 🔁 обновление каждые 5 сек
+    this.interval = setInterval(this.loadData, 5000)
   },
   beforeUnmount() {
     clearInterval(this.interval)
   }
 }
 </script>
+
+<style scoped>
+.pulse-card {
+  animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0.5);
+  }
+}
+</style>
+
