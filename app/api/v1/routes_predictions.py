@@ -43,3 +43,24 @@ def get_prediction_by_id(
     if not pred:
         raise HTTPException(status_code=404, detail="Prediction not found")
     return pred
+
+@router.get("/by-stage/{stage_id}", response_model=List[schemas.Prediction])
+def get_predictions_by_stage(stage_id: int, db: Session = Depends(get_db)):
+    return (
+      db.query(models.Prediction)
+        .filter(models.Prediction.stage_id == stage_id)
+        .order_by(models.Prediction.timestamp)
+        .all()
+    )
+
+@router.get("/latest/{stage_id}", response_model=schemas.Prediction)
+def get_latest_prediction(stage_id: int, db: Session = Depends(get_db)):
+    pred = (
+        db.query(models.Prediction)
+          .filter(models.Prediction.stage_id == stage_id)
+          .order_by(models.Prediction.timestamp.desc())
+          .first()
+    )
+    if not pred:
+        raise HTTPException(status_code=404, detail="No predictions found")
+    return pred

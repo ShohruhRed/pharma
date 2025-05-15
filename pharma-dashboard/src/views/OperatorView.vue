@@ -147,8 +147,8 @@ export default {
 
         this.prevSensor = { ...newSensor }
 
-        const prediction = await fetchPredictionByStage(data.stage.id)
-        this.prediction = prediction?.[0] || {}
+        const preds = await fetchPredictionByStage(data.stage.id)
+        this.prediction = Array.isArray(preds) && preds.length ? preds[preds.length - 1] : {}
 
       } catch (err) {
         console.error('Operator sahifasida xatolik:', err)

@@ -1,3 +1,5 @@
+# simulate_realtime.py
+
 import requests
 import random
 import time
@@ -8,7 +10,6 @@ STAGE_NAMES = ["Mixing", "Granulation", "Drying", "Pressing", "Coating", "Packag
 STAGE_MAP = {
     "Mixing": 0, "Granulation": 1, "Drying": 2, "Pressing": 3, "Coating": 4, "Packaging": 5
 }
-
 RANGES = {
     "temperature": (20.0, 43.0),
     "pressure":    (1.0,  2.7),
@@ -17,18 +18,10 @@ RANGES = {
     "KCl":         (0.2,  0.3),
 }
 
-
-def create_batch():
-    r = requests.post(f"{API_URL}/batches", json={})
-    r.raise_for_status()
-    return r.json()["id"]
-
-
 def create_stage(batch_id: int, name: str):
     r = requests.post(f"{API_URL}/stages", json={"batch_id": batch_id, "name": name})
     r.raise_for_status()
     return r.json()["id"]
-
 
 def send_stage_data(stage_id: int, stage_name: str):
     """Отправляет измерение сенсоров, включая `stage_idx` и `composition`."""
@@ -56,7 +49,6 @@ def send_stage_data(stage_id: int, stage_name: str):
     r.raise_for_status()
     return payload
 
-
 def get_sanfis_prediction(sensor: dict):
     """Запрос к SANFIS API, включая `NaCl` и `KCl` как отдельные поля."""
     inp = {
@@ -79,40 +71,29 @@ def get_sanfis_prediction(sensor: dict):
     r.raise_for_status()
     return r.json()
 
-
-
 def log_sanfis(stage_id: int, sensor: dict, sf: dict):
-    # """Логируем предсказание, включая `stage_idx`."""
     # entry = {
-    #     "stage_id":           stage_id,
-    #     "timestamp":          sensor["timestamp"],
-    #     "temperature":        sensor["temperature"],
-    #     "pressure":           sensor["pressure"],
-    #     "humidity":           sensor["humidity"],
-    #     "NaCl":               sensor["NaCl"],
-    #     "KCl":                sensor["KCl"],
-    #     "stage_idx":          sensor["stage_idx"],  # 📌 Теперь `stage_idx` записывается!
-    #     "defect_probability": sf["defect_probability"],
-    #     "risk_level":         sf["risk_level"],
-    #     "recommendation":     sf["recommendation"],
-    #     "source_model":       "sanfis",
-    #     "rule_used":          sf.get("rule_used"),
+    #     "stage_id":          stage_id,
+    #     "timestamp":         sensor["timestamp"],
+    #     "temperature":       sensor["temperature"],
+    #     "pressure":          sensor["pressure"],
+    #     "humidity":          sensor["humidity"],
+    #     "NaCl":              sensor["composition"]["NaCl"],
+    #     "KCl":               sensor["composition"]["KCl"],
+    #     "stage_idx":         sensor["stage_idx"],
+    #     "defect_probability":sf["defect_probability"],
+    #     "risk_level":        sf["risk_level"],
+    #     "recommendation":    sf["recommendation"],
+    #     "source_model":      "sanfis",
+    #     "rule_used":         sf.get("rule_used")
     # }
-    #
-    # # 🔎 Выводим перед отправкой для диагностики
-    # import json
-    # print(f"📝 Записываем лог предсказания:\n{json.dumps(entry, indent=2)}")
-    #
-    # r = requests.post(f"{API_URL}/predictions", json=entry)
-    # r.raise_for_status()
+    #      requests.post(f"{API_URL}/predictions", json=entry).raise_for_status()
     pass
-
-
-def run_simulation_sanfis(measurements_per_stage: int = 5):
-    print("=== Стартуем симуляцию только для SANFIS ===")
-    batch_id = create_batch()
-    print(f"[+] Создана партия #{batch_id}")
-
+def simulate_for_batch(batch_id: int, measurements_per_stage: int = 5):
+    """
+    Симулирует этапы, замеры и предсказания для уже созданной партии.
+    """
+    print(f"🚀 Start simulation for batch {batch_id}")
     stage_ids = {}
     for name in STAGE_NAMES:
         sid = create_stage(batch_id, name)
@@ -123,12 +104,13 @@ def run_simulation_sanfis(measurements_per_stage: int = 5):
         print(f"--- {name}: {measurements_per_stage} замеров ---")
         for i in range(1, measurements_per_stage + 1):
             sensor = send_stage_data(sid, name)  # 📌 Теперь `stage_idx` передаётся корректно
-            sf     = get_sanfis_prediction(sensor)
+            sf = get_sanfis_prediction(sensor)
             log_sanfis(sid, sensor, sf)
             print(f"  [{name}·{i}] prob={sf['defect_probability']:.2f}, "
-                  f"risk={sf['risk_level']}, rule={sf.get('rule_used','-')}")
+                  f"risk={sf['risk_level']}, rule={sf.get('rule_used', '-')}")
             time.sleep(random.uniform(0.5, 1.5))
 
-
-if __name__ == "__main__":
-    run_simulation_sanfis(5)
+# старый entry-point, если нужно
+# def run_simulation_sanfis(measurements_per_stage: int = 5):
+#     batch_id = create_batch()
+#     simulate_for_batch(batch_id, measurements_per_stage)
